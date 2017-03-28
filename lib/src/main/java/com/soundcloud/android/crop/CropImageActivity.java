@@ -34,7 +34,6 @@ import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -289,7 +288,7 @@ public class CropImageActivity extends MonitoredActivity {
             }
         }
 
-        if(exifRotation != 0 && exifRotation % 90 == 0){
+        if (exifRotation != 0 && exifRotation % 90 == 0) {
             int tmp = outWidth;
             outWidth = outHeight;
             outHeight = tmp;
@@ -389,10 +388,9 @@ public class CropImageActivity extends MonitoredActivity {
             OutputStream outputStream = null;
 
             Bitmap destBitmap = croppedImage;
-            if(exifRotation != 0){
+            if (exifRotation != 0) {
                 destBitmap = CropUtil.rotateImage(croppedImage, exifRotation);
             }
-            FileInputStream inputStream = null;
             try {
                 //save bitmap to file
                 outputStream = getContentResolver().openOutputStream(saveUri);
@@ -403,11 +401,11 @@ public class CropImageActivity extends MonitoredActivity {
                 }
                 destBitmap.recycle();
             } catch (OutOfMemoryError error) {
-            } catch (IOException e){
+                Log.e("App is OOM: ", error);
+            } catch (IOException e) {
                 setResultException(e);
                 Log.e("Cannot open file: " + saveUri, e);
-            }finally {
-                CropUtil.closeSilently(inputStream);
+            } finally {
                 CropUtil.closeSilently(outputStream);
             }
 

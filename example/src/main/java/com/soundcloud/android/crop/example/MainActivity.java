@@ -1,7 +1,5 @@
 package com.soundcloud.android.crop.example;
 
-import com.soundcloud.android.crop.Crop;
-
 import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -16,10 +14,13 @@ import android.view.MenuItem;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import com.soundcloud.android.crop.Crop;
+
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
 
 public class MainActivity extends Activity {
 
@@ -33,7 +34,6 @@ public class MainActivity extends Activity {
         resultView = (ImageView) findViewById(R.id.result_image);
     }
 
-    //处理6.0动态权限问题
     private void requestPermission() {
         if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
                 != PackageManager.PERMISSION_GRANTED) {
@@ -53,9 +53,10 @@ public class MainActivity extends Activity {
     }
 
     private File imageFile;
-    private void cropFromCamera(){
+
+    private void cropFromCamera() {
         Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        String timeStamp = new SimpleDateFormat("yyyyMMddHHmmss").format(new Date());
+        String timeStamp = new SimpleDateFormat("yyyyMMddHHmmss", Locale.ENGLISH).format(new Date());
         String fileName = timeStamp + "_";
         File fileDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
         try {
@@ -74,7 +75,7 @@ public class MainActivity extends Activity {
             resultView.setImageDrawable(null);
             Crop.pickImage(this);
             return true;
-        }else if(item.getItemId() == R.id.action_select2){
+        } else if (item.getItemId() == R.id.action_select2) {
             resultView.setImageDrawable(null);
             requestPermission();
             return true;
@@ -85,19 +86,21 @@ public class MainActivity extends Activity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent result) {
         if ((requestCode == Crop.REQUEST_PICK || requestCode == REQUEST_PICK_CAMERA) && resultCode == RESULT_OK) {
-            if(result != null)
-                beginCrop(result.getData(),4,3);
+            if (result != null)
+                beginCrop(result.getData());
             else {
-                beginCrop(Uri.fromFile(imageFile),4,3);
+                beginCrop(Uri.fromFile(imageFile));
             }
         } else if (requestCode == Crop.REQUEST_CROP || requestCode == REQUEST_PICK_CAMERA) {
             handleCrop(resultCode, result);
         }
     }
 
-    private void beginCrop(Uri source,int width,int height) {
+    private void beginCrop(Uri source) {
         Uri destination = Uri.fromFile(new File(getCacheDir(), "cropped"));
-        Crop.of(source, destination).withAspect(width,height).start(this);
+        Crop.of(source, destination).start(this);
+//        Crop.of(source, destination).asSquare().start(this);
+//        Crop.of(source, destination).withAspect(4,3).start(this);
     }
 
 
