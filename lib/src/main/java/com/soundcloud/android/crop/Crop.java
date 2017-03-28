@@ -96,6 +96,7 @@ public class Crop {
 
     /**
      * Set how the image will be scaled when providing {@link Extra#MAX_X} and {@link Extra#MAX_Y} with the {@link #withMaxSize(int, int)}
+     *
      * @param type
      * @return
      */
@@ -106,6 +107,7 @@ public class Crop {
 
     /**
      * Set whether to save the result as a PNG or not. Helpful to preserve alpha.
+     *
      * @param asPng whether to save the result as a PNG or not
      */
     public Crop asPng(boolean asPng) {
@@ -280,7 +282,7 @@ public class Crop {
     }
 
     private static Intent getImagePicker() {
-        return new Intent(Intent.ACTION_GET_CONTENT).setType("image/*");
+        return new Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI).setType("image/*");
     }
 
     private static void showImagePickerError(Context context) {
