@@ -1,5 +1,6 @@
 package com.soundcloud.android.crop.example;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -7,6 +8,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.view.Menu;
@@ -26,6 +28,7 @@ public class MainActivity extends Activity {
 
     private ImageView resultView;
     public static final int REQUEST_PICK_CAMERA = 91620;
+    private static final String[] PERMISSIONS = new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.CAMERA};
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,15 +38,20 @@ public class MainActivity extends Activity {
     }
 
     private void requestPermission() {
-        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(
-                    this,
-                    new String[]{android.Manifest.permission.WRITE_EXTERNAL_STORAGE},
-                    REQUEST_PICK_CAMERA);
-        } else {
-            cropFromCamera();
+        if (!hasPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) || !hasPermission(Manifest.permission.CAMERA)) {
+            requestPermission(PERMISSIONS);
+            return;
         }
+
+        cropFromCamera();
+    }
+
+    private boolean hasPermission(@NonNull String permission) {
+        return ContextCompat.checkSelfPermission(this, permission) == PackageManager.PERMISSION_GRANTED;
+    }
+
+    private void requestPermission(@NonNull String[] permissions) {
+        ActivityCompat.requestPermissions(this, permissions, 0);
     }
 
     @Override
@@ -71,11 +79,11 @@ public class MainActivity extends Activity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId() == R.id.action_select) {
+        if (item.getItemId() == R.id.action_pick_album) {
             resultView.setImageDrawable(null);
             Crop.pickImage(this);
             return true;
-        } else if (item.getItemId() == R.id.action_select2) {
+        } else if (item.getItemId() == R.id.action_take_photo) {
             resultView.setImageDrawable(null);
             requestPermission();
             return true;
