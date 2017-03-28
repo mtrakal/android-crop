@@ -21,7 +21,9 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.BitmapRegionDecoder;
+import android.graphics.Canvas;
 import android.graphics.Matrix;
+import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.net.Uri;
@@ -57,6 +59,7 @@ public class CropImageActivity extends MonitoredActivity {
     private int maxY;
     private int exifRotation;
     private boolean saveAsPng;
+    private Crop.ScaleMethod scaleMethod;
 
     private Uri sourceUri;
     private Uri saveUri;
@@ -128,6 +131,7 @@ public class CropImageActivity extends MonitoredActivity {
             maxY = extras.getInt(Crop.Extra.MAX_Y);
             saveAsPng = extras.getBoolean(Crop.Extra.AS_PNG, false);
             saveUri = extras.getParcelable(MediaStore.EXTRA_OUTPUT);
+            scaleMethod = Crop.ScaleMethod.values()[extras.getInt(Crop.Extra.SCALE_METHOD, 0)];
         }
 
         sourceUri = intent.getData();
@@ -351,11 +355,29 @@ public class CropImageActivity extends MonitoredActivity {
             }
 
             try {
-                croppedImage = decoder.decodeRegion(rect, new BitmapFactory.Options());
-                if (croppedImage != null && (rect.width() > outWidth || rect.height() > outHeight)) {
-                    Matrix matrix = new Matrix();
-                    matrix.postScale((float) outWidth / rect.width(), (float) outHeight / rect.height());
-                    croppedImage = Bitmap.createBitmap(croppedImage, 0, 0, croppedImage.getWidth(), croppedImage.getHeight(), matrix, true);
+                BitmapFactory.Options options = new BitmapFactory.Options();
+                if ((rect.width() > outWidth || rect.height() > outHeight)) {
+                    switch (scaleMethod) {
+                        case EXACT:
+                            croppedImage = decoder.decodeRegion(rect, options);
+                            Matrix matrix = new Matrix();
+                            matrix.postScale((float) outWidth / rect.width(), (float) outHeight / rect.height());
+                            croppedImage = Bitmap.createBitmap(croppedImage, 0, 0, croppedImage.getWidth(), croppedImage.getHeight(), matrix, true);
+                            break;
+                        case BETTER_QUALITY_BEST_FIT:
+                            int w, h;
+                            int inSampleSize = 1;
+                            do {
+                                inSampleSize *= 2;
+                                w = rect.width() / inSampleSize;
+                                h = rect.height() / inSampleSize;
+                            } while(w > outWidth && h > outHeight);
+                            options.inSampleSize = inSampleSize;
+                            croppedImage = decoder.decodeRegion(rect, options);
+                            break;
+                    }
+                } else {
+                    croppedImage = decoder.decodeRegion(rect, options);
                 }
             } catch (IllegalArgumentException e) {
                 // Rethrow with some extra information
@@ -452,5 +474,4 @@ public class CropImageActivity extends MonitoredActivity {
     private void setResultException(Throwable throwable) {
         setResult(Crop.RESULT_ERROR, new Intent().putExtra(Crop.Extra.ERROR, throwable));
     }
-
 }
