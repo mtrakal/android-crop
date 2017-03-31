@@ -20,10 +20,7 @@ import android.annotation.TargetApi;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.BitmapRegionDecoder;
-import android.graphics.Canvas;
 import android.graphics.Matrix;
-import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.net.Uri;
@@ -337,9 +334,9 @@ public class CropImageActivity extends MonitoredActivity {
         Bitmap croppedImage = null;
         try {
             is = getContentResolver().openInputStream(sourceUri);
-            BitmapRegionDecoder decoder = BitmapRegionDecoder.newInstance(is, false);
-            final int width = decoder.getWidth();
-            final int height = decoder.getHeight();
+            croppedImage = BitmapFactory.decodeStream(is);
+            final int width = croppedImage.getWidth();
+            final int height = croppedImage.getHeight();
 
             if (exifRotation != 0) {
                 // Adjust crop area to account for image rotation
@@ -359,7 +356,7 @@ public class CropImageActivity extends MonitoredActivity {
                 if ((rect.width() > outWidth || rect.height() > outHeight)) {
                     switch (scaleMethod) {
                         case EXACT:
-                            croppedImage = decoder.decodeRegion(rect, options);
+                            croppedImage = Bitmap.createBitmap(croppedImage, rect.left, rect.top, rect.width(), rect.height());
                             Matrix matrix = new Matrix();
                             matrix.postScale((float) outWidth / rect.width(), (float) outHeight / rect.height());
                             croppedImage = Bitmap.createBitmap(croppedImage, 0, 0, croppedImage.getWidth(), croppedImage.getHeight(), matrix, true);
@@ -373,11 +370,11 @@ public class CropImageActivity extends MonitoredActivity {
                                 h = rect.height() / inSampleSize;
                             } while(w > outWidth && h > outHeight);
                             options.inSampleSize = inSampleSize;
-                            croppedImage = decoder.decodeRegion(rect, options);
+                            croppedImage = Bitmap.createBitmap(croppedImage, rect.left, rect.top, w, h);
                             break;
                     }
                 } else {
-                    croppedImage = decoder.decodeRegion(rect, options);
+                    croppedImage = Bitmap.createBitmap(croppedImage, rect.left, rect.top, rect.width(), rect.height());
                 }
             } catch (IllegalArgumentException e) {
                 // Rethrow with some extra information
