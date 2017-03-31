@@ -26,7 +26,9 @@ import java.util.Locale;
 
 public class MainActivity extends Activity {
 
+    private static final String KEY_IMAGE_FILE = "key_image_file";
     private ImageView resultView;
+    private File imageFile;
     public static final int REQUEST_PICK_CAMERA = 91620;
     private static final String[] PERMISSIONS = new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.CAMERA};
 
@@ -59,8 +61,6 @@ public class MainActivity extends Activity {
         getMenuInflater().inflate(R.menu.activity_main, menu);
         return super.onCreateOptionsMenu(menu);
     }
-
-    private File imageFile;
 
     private void cropFromCamera() {
         Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
@@ -120,4 +120,15 @@ public class MainActivity extends Activity {
         }
     }
 
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putSerializable(KEY_IMAGE_FILE, imageFile);
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        imageFile = (File) savedInstanceState.getSerializable(KEY_IMAGE_FILE);
+    }
 }
